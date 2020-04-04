@@ -6,9 +6,15 @@ function CodesearchSearcher(query) {
 }
 inherits(CodesearchSearcher, Searcher);
 
+// JAMES we need an official suggestions endpoint.
+//
+// The production source.chromium.org does a POST to:
+// https://grimoireoss-pa.clients6.google.com/batch?%24ct=multipart%2Fmixed%3B%20boundary%3Dbatch516842768408498906
+// with
+// {"queryString":"hello","suggestOptions":{"maxSuggestions":7,"pathPrefix":"","repositoryScope":{"domain":"source.chromium.org","visibility":"PUBLIC_ONLY"},"savedQuery":""}}
 CodesearchSearcher.prototype.getSuggestionsURL = function() {
   return [
-    'https://cs.chromium.org/codesearch/json?',
+    'https://source.chromium.org/codesearch/json?',
     'suggest_request=b&',
     'query=', encodeURI(this.query), '+package%3Achromium&',
     'query_cursor_position=' + this.query.length, '&',
@@ -29,7 +35,7 @@ CodesearchSearcher.prototype.getSuggestions = function(response) {
       return [];
     }
   } catch (e) {
-    console.error('Invalid response: ' + currentXhr.responseText);
+    console.error('Invalid response: ', response);
     return [];
   }
 
@@ -42,7 +48,7 @@ CodesearchSearcher.prototype.getSuggestions = function(response) {
 
     // Construct the link that has been suggested.
     var href = [
-      'https://cs.chromium.org/', suggest.goto_package_id, '/',
+      'https://source.chromium.org/', suggest.goto_package_id, '/',
       suggest.goto_path, '?', 'q=', encodeURI(this.query), '&',
       'sq=package:chromium&', has_line ? ('l=' + suggest.goto_line) : '',
     ].join('');
@@ -74,9 +80,14 @@ CodesearchSearcher.prototype.getSuggestions = function(response) {
   return window.cs;
 };
 
+// A search for 'hello' generates:
+// https://source.chromium.org/search?q=hello&sq=&ss=chromium
 CodesearchSearcher.prototype.getSearchURL = function() {
   return [
-    'https://cs.chromium.org/search/', '?q=', encodeURI(this.query),
-    '&sq=package:chromium&type=cs'
+    'https://source.chromium.org/search/', '?q=', encodeURI(this.query),
+    // Scoped query?
+    '&sq=',
+    // Session source?
+    '&ss=chromium'
   ].join('');
 };

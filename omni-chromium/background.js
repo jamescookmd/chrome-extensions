@@ -57,6 +57,7 @@ chrome.omnibox.onInputChanged.addListener(function(query, suggest) {
     if (currentXhr)
       currentXhr.abort();
     currentXhr = new XMLHttpRequest();
+    // JAMES: switch to POST?
     currentXhr.open('GET', searcher.getSuggestionsURL(), true);
     currentXhr.onload = function() {
       suggest(searcher.getSuggestions(currentXhr.responseText));
